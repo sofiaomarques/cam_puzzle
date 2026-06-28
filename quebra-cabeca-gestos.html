@@ -235,7 +235,6 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   #loading-text { font-size: 14px; color: #666; }
 
-  /* Cursor de mira na câmera */
   #cursor-dot {
     position: absolute;
     width: 14px;
@@ -484,7 +483,7 @@ function captureFrame() {
   img.onload = () => {
     flashScreen();
     initPuzzle(img);
-    setStatus('Quebra-cabeça pronto! Jogue com gestos.', 'active');
+    setStatus('Jogue com gestos.', 'active');
   };
 }
 
