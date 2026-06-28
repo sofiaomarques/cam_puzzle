@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quebra-Cabeça por Gestos</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #0f0f11;
+    color: #e8e8e6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+    gap: 20px;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.3px;
+    color: #e8e8e6;
+  }
+
+  #status-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    background: #1a1a1e;
+    border-radius: 10px;
+    border: 1px solid #2a2a2e;
+    width: 100%;
+    max-width: 720px;
+  }
+
+  #status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #e24b4a;
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+
+  #status-dot.active { background: #639922; }
+  #status-dot.loading { background: #ef9f27; animation: pulse 1s infinite; }
+
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  #status-text { font-size: 14px; color: #888; }
+
+  #main-area {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    max-width: 720px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  #camera-panel {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  #video {
+    width: 320px;
+    height: 240px;
+    border-radius: 12px;
+    border: 1px solid #2a2a2e;
+    object-fit: cover;
+    transform: scaleX(-1);
+    display: block;
+    background: #0a0a0c;
+  }
+
+  #canvas-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 320px; height: 240px;
+    border-radius: 12px;
+    pointer-events: none;
+    transform: scaleX(-1);
+  }
+
+  #frame-flash {
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background: white;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.08s;
+  }
+
+  #frame-flash.flash { opacity: 0.9; }
+
+  #gesture-info {
+    position: absolute;
+    bottom: 8px; left: 8px; right: 8px;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(4px);
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: #fff;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  #puzzle-panel {
+    flex: 1;
+    min-width: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  #puzzle-canvas {
+    border-radius: 12px;
+    border: 1px solid #2a2a2e;
+    display: block;
+    background: #1a1a1e;
+  }
+
+  #puzzle-status {
+    font-size: 13px;
+    color: #888;
+    text-align: center;
+    max-width: 270px;
+    line-height: 1.5;
+  }
+
+  #btn-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  button {
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: 1px solid #3a3a3e;
+    background: transparent;
+    color: #e8e8e6;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  button:hover { background: #1a1a1e; border-color: #555; }
+
+  button.primary {
+    background: #378add;
+    color: #fff;
+    border-color: transparent;
+  }
+
+  button.primary:hover { background: #185fa5; }
+
+  #instructions {
+    width: 100%;
+    max-width: 720px;
+    padding: 14px 18px;
+    background: #1a1a1e;
+    border-radius: 10px;
+    border: 1px solid #2a2a2e;
+  }
+
+  #instructions h3 {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: #e8e8e6;
+  }
+
+  #instructions ul {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 24px;
+  }
+
+  #instructions li {
+    font-size: 13px;
+    color: #888;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.4;
+  }
+
+  .gesture-badge {
+    display: inline-block;
+    background: #0c447c22;
+    color: #5ba3e8;
+    border: 1px solid #185fa544;
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  #loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: #0f0f11;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 100;
+    transition: opacity 0.4s;
+  }
+
+  #loading-overlay.hidden { opacity: 0; pointer-events: none; }
+
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #2a2a2e;
+    border-top-color: #378add;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading-text { font-size: 14px; color: #666; }
+
+  /* Cursor de mira na câmera */
+  #cursor-dot {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #378add;
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    display: none;
+    z-index: 10;
+    box-shadow: 0 0 6px #378add66;
+  }
+</style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div id="loading-text">Carregando MediaPipe Hands...</div>
+</div>
+
+<h1>Quebra-Cabeça por Gestos</h1>
+
+<div id="status-bar">
+  <div id="status-dot" class="loading"></div>
+  <span id="status-text">Carregando bibliotecas...</span>
+</div>
+
+<div id="main-area">
+  <div id="camera-panel">
+    <video id="video" autoplay muted playsinline></video>
+    <canvas id="canvas-overlay"></canvas>
+    <div id="frame-flash"></div>
+    <div id="cursor-dot"></div>
+    <div id="gesture-info">
+      <span id="gesture-label">Gesto: —</span>
+      <span id="hand-count">Mãos: 0</span>
+    </div>
+  </div>
+
+  <div id="puzzle-panel">
+    <canvas id="puzzle-canvas" width="270" height="270"></canvas>
+    <div id="puzzle-status">Faça a moldura com os dois dedos para capturar!</div>
+    <div id="btn-row">
+      <button id="btn-shuffle">Embaralhar</button>
+      <button id="btn-reset" class="primary">Nova foto</button>
+    </div>
+  </div>
+</div>
+
+<div id="instructions">
+  <h3>Como jogar</h3>
+  <ul>
+    <li><span class="gesture-badge">📷 Moldura</span> Aproxime polegar + indicador nas duas mãos (como pinçar)</li>
+    <li><span class="gesture-badge">☝️ Apontar</span> Indicador estendido — seleciona a peça sob o cursor</li>
+    <li><span class="gesture-badge">✊ Punho</span> Com peça selecionada, aponte para uma adjacente para trocar</li>
+    <li><span class="gesture-badge">✋ Aberta</span> Mão aberta — deseleciona a peça atual</li>
+  </ul>
+</div>
+
+<!-- MediaPipe via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+<script>
+// ─── Elementos ───────────────────────────────────────────────────────────────
+const video        = document.getElementById('video');
+const overlay      = document.getElementById('canvas-overlay');
+const ctx          = overlay.getContext('2d');
+const puzzleCanvas = document.getElementById('puzzle-canvas');
+const pCtx         = puzzleCanvas.getContext('2d');
+const statusDot    = document.getElementById('status-dot');
+const statusText   = document.getElementById('status-text');
+const gestureLabel = document.getElementById('gesture-label');
+const handCount    = document.getElementById('hand-count');
+const puzzleStatus = document.getElementById('puzzle-status');
+const frameFlash   = document.getElementById('frame-flash');
+const cursorDot    = document.getElementById('cursor-dot');
+const loadingEl    = document.getElementById('loading-overlay');
+const loadingText  = document.getElementById('loading-text');
+
+// ─── Estado ──────────────────────────────────────────────────────────────────
+const GRID = 3;
+const TILE = 90;
+
+let puzzleTiles   = [];
+let capturedImage = null;
+let gameState     = 'capture';   // 'capture' | 'playing' | 'solved'
+let selectedTile  = null;
+let gestureCooldown = 0;
+let frameCooldown   = 0;
+
+function setStatus(msg, state = 'idle') {
+  statusText.textContent = msg;
+  statusDot.className = state; // 'active' | 'loading' | ''
+}
+
+// ─── Puzzle ───────────────────────────────────────────────────────────────────
+function initPuzzle(img) {
+  capturedImage = img;
+  puzzleTiles = [];
+  for (let r = 0; r < GRID; r++)
+    for (let c = 0; c < GRID; c++)
+      puzzleTiles.push({ r, c, origR: r, origC: c });
+  shufflePuzzle();
+  gameState = 'playing';
+  drawPuzzle();
+  puzzleStatus.textContent = 'Aponte (☝️) para selecionar uma peça, punho (✊) para mover!';
+}
+
+function shufflePuzzle() {
+  // Fisher-Yates nos índices de posição, garantindo embaralhamento par
+  const positions = puzzleTiles.map(t => ({ r: t.r, c: t.c }));
+  for (let i = positions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [positions[i], positions[j]] = [positions[j], positions[i]];
+  }
+  puzzleTiles.forEach((t, i) => { t.r = positions[i].r; t.c = positions[i].c; });
+  selectedTile = null;
+}
+
+function drawPuzzle() {
+  pCtx.clearRect(0, 0, 270, 270);
+
+  if (!capturedImage) {
+    pCtx.fillStyle = '#1a1a1e';
+    pCtx.fillRect(0, 0, 270, 270);
+    pCtx.fillStyle = '#555';
+    pCtx.font = '14px system-ui';
+    pCtx.textAlign = 'center';
+    pCtx.fillText('Faça a moldura com os', 135, 115);
+    pCtx.fillText('dois dedos para capturar', 135, 135);
+    pCtx.fillText('📷', 135, 85);
+    pCtx.font = '32px system-ui';
+    pCtx.fillText('📷', 135, 80);
+    return;
+  }
+
+  puzzleTiles.forEach(tile => {
+    const dx = tile.c * TILE;
+    const dy = tile.r * TILE;
+    const sx = tile.origC * (capturedImage.width / GRID);
+    const sy = tile.origR * (capturedImage.height / GRID);
+    const sw = capturedImage.width / GRID;
+    const sh = capturedImage.height / GRID;
+
+    pCtx.save();
+    pCtx.drawImage(capturedImage, sx, sy, sw, sh, dx + 1, dy + 1, TILE - 2, TILE - 2);
+    pCtx.restore();
+
+    // Borda padrão
+    pCtx.strokeStyle = 'rgba(255,255,255,0.15)';
+    pCtx.lineWidth = 1;
+    pCtx.strokeRect(dx + 1, dy + 1, TILE - 2, TILE - 2);
+
+    // Highlight da peça selecionada
+    if (selectedTile === tile) {
+      pCtx.strokeStyle = '#378add';
+      pCtx.lineWidth = 3;
+      pCtx.strokeRect(dx + 2, dy + 2, TILE - 4, TILE - 4);
+      // Brilho
+      pCtx.shadowColor = '#378add';
+      pCtx.shadowBlur = 12;
+      pCtx.strokeRect(dx + 2, dy + 2, TILE - 4, TILE - 4);
+      pCtx.shadowBlur = 0;
+    }
+  });
+
+  // Grade
+  pCtx.strokeStyle = 'rgba(255,255,255,0.08)';
+  pCtx.lineWidth = 1;
+  for (let i = 1; i < GRID; i++) {
+    pCtx.beginPath(); pCtx.moveTo(i * TILE, 0); pCtx.lineTo(i * TILE, 270); pCtx.stroke();
+    pCtx.beginPath(); pCtx.moveTo(0, i * TILE); pCtx.lineTo(270, i * TILE); pCtx.stroke();
+  }
+
+  if (gameState === 'solved') {
+    pCtx.fillStyle = 'rgba(0,0,0,0.55)';
+    pCtx.fillRect(0, 0, 270, 270);
+    pCtx.fillStyle = '#fff';
+    pCtx.font = 'bold 26px system-ui';
+    pCtx.textAlign = 'center';
+    pCtx.fillText('🎉 Resolvido!', 135, 125);
+    pCtx.font = '13px system-ui';
+    pCtx.fillStyle = '#aaa';
+    pCtx.fillText('Faça a moldura para nova foto', 135, 155);
+  }
+}
+
+function checkSolved() {
+  if (puzzleTiles.every(t => t.r === t.origR && t.c === t.origC)) {
+    gameState = 'solved';
+    drawPuzzle();
+    puzzleStatus.textContent = '🎉 Parabéns! Quebra-cabeça resolvido!';
+    return true;
+  }
+  return false;
+}
+
+function getTileAt(r, c) {
+  return puzzleTiles.find(t => t.r === r && t.c === c);
+}
+
+function swapTiles(t1, t2) {
+  [t1.r, t2.r] = [t2.r, t1.r];
+  [t1.c, t2.c] = [t2.c, t1.c];
+}
+
+// ─── Detecção de gestos ───────────────────────────────────────────────────────
+function fingerExtended(lm, tip, pip) {
+  return lm[tip].y < lm[pip].y - 0.02;
+}
+
+function detectGesture(lm) {
+  const indexUp  = fingerExtended(lm, 8, 6);
+  const middleUp = fingerExtended(lm, 12, 10);
+  const ringUp   = fingerExtended(lm, 16, 14);
+  const pinkyUp  = fingerExtended(lm, 20, 18);
+
+  if (indexUp && !middleUp && !ringUp && !pinkyUp) return 'point';
+  if (!indexUp && !middleUp && !ringUp && !pinkyUp) return 'fist';
+  if (indexUp && middleUp && ringUp && pinkyUp)     return 'open';
+  return 'other';
+}
+
+// ─── Flash e captura ──────────────────────────────────────────────────────────
+function flashScreen() {
+  frameFlash.classList.add('flash');
+  setTimeout(() => frameFlash.classList.remove('flash'), 180);
+}
+
+function captureFrame() {
+  const w = video.videoWidth  || 320;
+  const h = video.videoHeight || 240;
+  const off = document.createElement('canvas');
+  off.width = w; off.height = h;
+  const offCtx = off.getContext('2d');
+  offCtx.save();
+  offCtx.scale(-1, 1);
+  offCtx.drawImage(video, -w, 0, w, h);
+  offCtx.restore();
+
+  const img = new Image();
+  img.src = off.toDataURL('image/jpeg', 0.92);
+  img.onload = () => {
+    flashScreen();
+    initPuzzle(img);
+    setStatus('Quebra-cabeça pronto! Jogue com gestos.', 'active');
+  };
+}
+
+// ─── Callback principal MediaPipe ─────────────────────────────────────────────
+function onResults(results) {
+  ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+  const lms = results.multiHandLandmarks || [];
+  handCount.textContent = `Mãos: ${lms.length}`;
+
+  if (gestureCooldown > 0) gestureCooldown--;
+  if (frameCooldown > 0)   frameCooldown--;
+
+  if (lms.length === 0) {
+    gestureLabel.textContent = 'Gesto: —';
+    cursorDot.style.display = 'none';
+    return;
+  }
+
+  // Desenha landmarks
+  lms.forEach(landmarks => {
+    if (window.drawConnectors && window.HAND_CONNECTIONS) {
+      drawConnectors(ctx, landmarks, HAND_CONNECTIONS, { color: 'rgba(55,138,221,0.5)', lineWidth: 2 });
+      drawLandmarks(ctx, landmarks, { color: '#378add', lineWidth: 1, radius: 3 });
+    }
+  });
+
+  // ── Gesto de moldura (2 mãos com pinça) ──────────────────────────────────
+  if (lms.length >= 2 && gameState !== 'playing' && frameCooldown === 0) {
+    let pinchCount = 0;
+    for (const lm of lms) {
+      const d = Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y);
+      if (d < 0.08) pinchCount++;
+    }
+    if (pinchCount >= 2) {
+      gestureLabel.textContent = 'Gesto: 📷 Moldura!';
+      frameCooldown = 60;
+      captureFrame();
+      return;
+    }
+  }
+
+  // ── Controle do jogo (1 mão dominante) ───────────────────────────────────
+  if (lms.length >= 1 && gameState === 'playing') {
+    const lm = lms[0];
+    const g  = detectGesture(lm);
+
+    const gestMap = { point: '☝️ Apontar', fist: '✊ Punho', open: '✋ Aberta', other: '— Outro' };
+    gestureLabel.textContent = `Gesto: ${gestMap[g] || '—'}`;
+
+    // Posição do indicador no espaço do puzzle (espelhado)
+    const indexTip = lm[8];
+    const px = (1 - indexTip.x) * 270;
+    const py = indexTip.y * 270;
+
+    // Cursor visual sobre a câmera
+    const camX = (1 - indexTip.x) * 320;
+    const camY = indexTip.y * 240;
+    cursorDot.style.display = 'block';
+    cursorDot.style.left    = camX + 'px';
+    cursorDot.style.top     = camY + 'px';
+
+    const col = Math.max(0, Math.min(GRID - 1, Math.floor(px / TILE)));
+    const row = Math.max(0, Math.min(GRID - 1, Math.floor(py / TILE)));
+
+    if (g === 'point' && gestureCooldown === 0) {
+      const tile = getTileAt(row, col);
+      if (tile && tile !== selectedTile) {
+        selectedTile = tile;
+        gestureCooldown = 18;
+        drawPuzzle();
+        puzzleStatus.textContent = `Peça [${row},${col}] selecionada — feche o punho e aponte para a adjacente`;
+      }
+    }
+
+    if (g === 'fist' && selectedTile && gestureCooldown === 0) {
+      const neighbor = getTileAt(row, col);
+      if (neighbor && neighbor !== selectedTile) {
+        const dr = Math.abs(selectedTile.r - neighbor.r);
+        const dc = Math.abs(selectedTile.c - neighbor.c);
+        if (dr + dc === 1) {
+          swapTiles(selectedTile, neighbor);
+          selectedTile = null;
+          gestureCooldown = 28;
+          drawPuzzle();
+          if (!checkSolved()) {
+            puzzleStatus.textContent = 'Continue! Aponte para outra peça.';
+          }
+        } else {
+          puzzleStatus.textContent = 'Só é possível trocar peças adjacentes!';
+          gestureCooldown = 20;
+        }
+      }
+    }
+
+    if (g === 'open' && gestureCooldown === 0) {
+      selectedTile = null;
+      gestureCooldown = 12;
+      drawPuzzle();
+      puzzleStatus.textContent = 'Deselcionado. Aponte (☝️) para escolher uma peça.';
+    }
+  }
+}
+
+// ─── Inicialização da câmera e MediaPipe ─────────────────────────────────────
+async function start() {
+  loadingText.textContent = 'Carregando MediaPipe Hands...';
+
+  let attempts = 0;
+  while (typeof Hands === 'undefined' && attempts < 30) {
+    await new Promise(r => setTimeout(r, 300));
+    attempts++;
+  }
+
+  if (typeof Hands === 'undefined') {
+    setStatus('Erro: MediaPipe não carregou. Verifique sua conexão.', '');
+    loadingEl.classList.add('hidden');
+    return;
+  }
+
+  loadingText.textContent = 'Acessando câmera...';
+  setStatus('Acessando câmera...', 'loading');
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+      audio: false
+    });
+    video.srcObject = stream;
+    await new Promise(r => video.addEventListener('loadedmetadata', r, { once: true }));
+
+    overlay.width  = video.videoWidth  || 320;
+    overlay.height = video.videoHeight || 240;
+
+  } catch (err) {
+    setStatus('Erro ao acessar câmera: ' + err.message, '');
+    loadingEl.classList.add('hidden');
+    return;
+  }
+
+  loadingText.textContent = 'Inicializando detector de mãos...';
+
+  const hands = new Hands({
+    locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
+  });
+
+  hands.setOptions({
+    maxNumHands: 2,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.72,
+    minTrackingConfidence: 0.55
+  });
+
+  hands.onResults(onResults);
+
+  const camera = new Camera(video, {
+    onFrame: async () => { await hands.send({ image: video }); },
+    width:  video.videoWidth  || 320,
+    height: video.videoHeight || 240
+  });
+
+  await camera.start();
+
+  loadingEl.classList.add('hidden');
+  setStatus('Pronto! Faça a moldura com os dois dedos para capturar uma foto.', 'active');
+  drawPuzzle();
+}
+
+// ─── Botões ───────────────────────────────────────────────────────────────────
+document.getElementById('btn-shuffle').addEventListener('click', () => {
+  if (!capturedImage) return;
+  shufflePuzzle();
+  gameState = 'playing';
+  drawPuzzle();
+  puzzleStatus.textContent = 'Embaralhado! Resolva usando gestos.';
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  capturedImage = null;
+  puzzleTiles   = [];
+  gameState     = 'capture';
+  selectedTile  = null;
+  drawPuzzle();
+  puzzleStatus.textContent = 'Faça a moldura com os dois dedos para capturar!';
+  setStatus('Pronto! Faça a moldura com os dois dedos para capturar uma foto.', 'active');
+});
+
+// ─── Inicia tudo ─────────────────────────────────────────────────────────────
+start();
+</script>
+</body>
+</html>
