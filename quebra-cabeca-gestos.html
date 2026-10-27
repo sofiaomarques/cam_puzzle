@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quebra-Cabeça por Gestos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
 <style>
   :root {
     --pink: #fbd5d8;
@@ -12,12 +15,15 @@
     --ink: #4a1519;
     --muted: #9a5a5f;
     --paper: #fffdfd;
+    --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
     background: var(--pink);
     color: var(--ink);
     min-height: 100vh;
@@ -29,9 +35,11 @@
   }
 
   h1 {
-    font-size: 24px;
-    font-weight: 600;
-    letter-spacing: -0.3px;
+    font-family: var(--font-display);
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
     color: var(--red);
   }
 
@@ -61,7 +69,7 @@
 
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-  #status-text { font-size: 14px; color: var(--muted); }
+  #status-text { font-size: 15px; font-weight: 500; color: var(--ink); }
 
   #main-area {
     display: flex;
@@ -129,23 +137,24 @@
 
   #frame-flash.flash { opacity: 0.9; }
 
-  #gesture-info {
-    position: absolute;
-    bottom: 20px; left: 28px; right: 28px;
-    background: rgba(74,21,25,0.7);
-    backdrop-filter: blur(4px);
-    border-radius: 999px;
-    padding: 6px 14px;
-    color: #fff;
-    font-size: 12px;
+  #camera-column {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  #gesture-info {
+    display: flex;
+    gap: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
   }
 
   #puzzle-card {
-    width: 314px;
-    height: 314px;
-    padding: 22px;
+    width: 312px;
+    height: 312px;
     background: var(--paper);
   }
 
@@ -159,16 +168,16 @@
   }
 
   #puzzle-canvas {
-    border-radius: 6px;
     display: block;
-    background: var(--paper);
+    width: 100%;
+    height: 100%;
   }
 
   #puzzle-status {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--muted);
     text-align: center;
-    max-width: 290px;
+    max-width: 300px;
     line-height: 1.5;
   }
 
@@ -183,7 +192,8 @@
     border: 2px solid var(--red);
     background: var(--paper);
     color: var(--red);
-    font-size: 13px;
+    font-family: inherit;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
@@ -208,9 +218,10 @@
   }
 
   #instructions h3 {
-    font-size: 14px;
+    font-family: var(--font-display);
+    font-size: 20px;
     font-weight: 600;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     color: var(--red);
   }
 
@@ -222,12 +233,12 @@
   }
 
   #instructions li {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--muted);
     display: flex;
     align-items: flex-start;
-    gap: 8px;
-    line-height: 1.4;
+    gap: 10px;
+    line-height: 1.45;
   }
 
   .gesture-badge {
@@ -236,9 +247,10 @@
     color: var(--red);
     border: 1px solid #c8141c55;
     border-radius: 999px;
-    padding: 1px 8px;
-    font-size: 11px;
-    font-weight: 600;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
     white-space: nowrap;
     flex-shrink: 0;
   }
@@ -268,7 +280,7 @@
   }
 
   @keyframes spin { to { transform: rotate(360deg); } }
-  #loading-text { font-size: 14px; color: var(--muted); }
+  #loading-text { font-size: 15px; color: var(--muted); }
 
   #cursor-dot {
     position: absolute;
@@ -300,24 +312,26 @@
 </div>
 
 <div id="main-area">
-  <div class="wavy" id="camera-frame">
-    <div id="camera-panel">
-      <video id="video" autoplay muted playsinline></video>
-      <canvas id="canvas-overlay"></canvas>
-      <div id="frame-flash"></div>
-      <div id="cursor-dot"></div>
-      <div id="gesture-info">
-        <span id="gesture-label">Gesto: —</span>
-        <span id="hand-count">Mãos: 0</span>
+  <div id="camera-column">
+    <div class="wavy" id="camera-frame">
+      <div id="camera-panel">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="canvas-overlay"></canvas>
+        <div id="frame-flash"></div>
+        <div id="cursor-dot"></div>
       </div>
+      <svg class="wavy-stroke"><path></path></svg>
     </div>
-    <svg class="wavy-stroke"><path></path></svg>
+    <div id="gesture-info">
+      <span id="gesture-label">Gesto: —</span>
+      <span id="hand-count">Mãos: 0</span>
+    </div>
   </div>
 
   <div id="puzzle-panel">
     <div class="wavy" id="puzzle-frame">
       <div id="puzzle-card">
-        <canvas id="puzzle-canvas" width="270" height="270"></canvas>
+        <canvas id="puzzle-canvas" width="312" height="312"></canvas>
       </div>
       <svg class="wavy-stroke"><path></path></svg>
     </div>
@@ -332,10 +346,10 @@
 <div id="instructions">
   <h3>Como jogar</h3>
   <ul>
-    <li><span class="gesture-badge">📷 Moldura</span> Aproxime polegar + indicador nas duas mãos (como pinçar)</li>
-    <li><span class="gesture-badge">☝️ Apontar</span> Indicador estendido — seleciona a peça sob o cursor</li>
-    <li><span class="gesture-badge">✊ Punho</span> Com peça selecionada, aponte para uma adjacente para trocar</li>
-    <li><span class="gesture-badge">✋ Aberta</span> Mão aberta — deseleciona a peça atual</li>
+    <li><span class="gesture-badge">Moldura</span> Aproxime polegar + indicador nas duas mãos (como pinçar)</li>
+    <li><span class="gesture-badge">Apontar</span> Indicador estendido — seleciona a peça sob o cursor</li>
+    <li><span class="gesture-badge">Punho</span> Com peça selecionada, aponte para uma adjacente para trocar</li>
+    <li><span class="gesture-badge">Aberta</span> Mão aberta — deseleciona a peça atual</li>
   </ul>
 </div>
 
@@ -417,7 +431,8 @@ applyWavyFrame(document.getElementById('puzzle-frame'), { amp: 7, wave: 90, r: 3
 
 // ─── Estado ──────────────────────────────────────────────────────────────────
 const GRID = 3;
-const TILE = 90;
+const SIZE = 312;
+const TILE = SIZE / GRID;
 
 let puzzleTiles   = [];
 let capturedImage = null;
@@ -441,7 +456,7 @@ function initPuzzle(img) {
   shufflePuzzle();
   gameState = 'playing';
   drawPuzzle();
-  puzzleStatus.textContent = 'Aponte (☝️) para selecionar uma peça, punho (✊) para mover!';
+  puzzleStatus.textContent = 'Aponte para selecionar uma peça, feche o punho para mover!';
 }
 
 function shufflePuzzle() {
@@ -456,70 +471,57 @@ function shufflePuzzle() {
 }
 
 function drawPuzzle() {
-  pCtx.clearRect(0, 0, 270, 270);
+  pCtx.clearRect(0, 0, SIZE, SIZE);
+  pCtx.textAlign = 'center';
 
   if (!capturedImage) {
     pCtx.fillStyle = '#fffdfd';
-    pCtx.fillRect(0, 0, 270, 270);
+    pCtx.fillRect(0, 0, SIZE, SIZE);
     pCtx.fillStyle = '#c8141c';
-    pCtx.font = '14px system-ui';
-    pCtx.textAlign = 'center';
-    pCtx.fillText('Faça a moldura com os', 135, 115);
-    pCtx.fillText('dois dedos para capturar', 135, 135);
-    pCtx.fillText('📷', 135, 85);
-    pCtx.font = '32px system-ui';
-    pCtx.fillText('📷', 135, 80);
+    pCtx.font = '600 17px "DM Sans", system-ui, sans-serif';
+    pCtx.fillText('Faça a moldura com os', SIZE / 2, SIZE / 2 - 6);
+    pCtx.fillText('dois dedos para capturar', SIZE / 2, SIZE / 2 + 18);
     return;
   }
 
+  // As peças preenchem o canvas inteiro; a moldura ondulada recorta as bordas.
   puzzleTiles.forEach(tile => {
     const dx = tile.c * TILE;
     const dy = tile.r * TILE;
-    const sx = tile.origC * (capturedImage.width / GRID);
-    const sy = tile.origR * (capturedImage.height / GRID);
     const sw = capturedImage.width / GRID;
     const sh = capturedImage.height / GRID;
-
-    pCtx.save();
-    pCtx.drawImage(capturedImage, sx, sy, sw, sh, dx + 1, dy + 1, TILE - 2, TILE - 2);
-    pCtx.restore();
-
-    // Borda padrão
-    pCtx.strokeStyle = 'rgba(255,255,255,0.7)';
-    pCtx.lineWidth = 1;
-    pCtx.strokeRect(dx + 1, dy + 1, TILE - 2, TILE - 2);
-
-    // Highlight da peça selecionada
-    if (selectedTile === tile) {
-      pCtx.strokeStyle = '#c8141c';
-      pCtx.lineWidth = 3;
-      pCtx.strokeRect(dx + 2, dy + 2, TILE - 4, TILE - 4);
-      // Brilho
-      pCtx.shadowColor = '#c8141c';
-      pCtx.shadowBlur = 12;
-      pCtx.strokeRect(dx + 2, dy + 2, TILE - 4, TILE - 4);
-      pCtx.shadowBlur = 0;
-    }
+    pCtx.drawImage(capturedImage, tile.origC * sw, tile.origR * sh, sw, sh, dx, dy, TILE, TILE);
   });
 
-  // Grade
-  pCtx.strokeStyle = 'rgba(255,255,255,0.35)';
+  // Divisórias discretas entre as peças
+  pCtx.strokeStyle = 'rgba(74,21,25,0.35)';
   pCtx.lineWidth = 1;
   for (let i = 1; i < GRID; i++) {
-    pCtx.beginPath(); pCtx.moveTo(i * TILE, 0); pCtx.lineTo(i * TILE, 270); pCtx.stroke();
-    pCtx.beginPath(); pCtx.moveTo(0, i * TILE); pCtx.lineTo(270, i * TILE); pCtx.stroke();
+    pCtx.beginPath(); pCtx.moveTo(i * TILE, 0); pCtx.lineTo(i * TILE, SIZE); pCtx.stroke();
+    pCtx.beginPath(); pCtx.moveTo(0, i * TILE); pCtx.lineTo(SIZE, i * TILE); pCtx.stroke();
+  }
+
+  // Destaque da peça selecionada
+  if (selectedTile) {
+    const dx = selectedTile.c * TILE, dy = selectedTile.r * TILE;
+    pCtx.save();
+    pCtx.strokeStyle = '#c8141c';
+    pCtx.lineWidth = 4;
+    pCtx.shadowColor = '#c8141c';
+    pCtx.shadowBlur = 12;
+    pCtx.strokeRect(dx + 2, dy + 2, TILE - 4, TILE - 4);
+    pCtx.restore();
   }
 
   if (gameState === 'solved') {
-    pCtx.fillStyle = 'rgba(0,0,0,0.55)';
-    pCtx.fillRect(0, 0, 270, 270);
+    pCtx.fillStyle = 'rgba(74,21,25,0.6)';
+    pCtx.fillRect(0, 0, SIZE, SIZE);
     pCtx.fillStyle = '#fff';
-    pCtx.font = 'bold 26px system-ui';
-    pCtx.textAlign = 'center';
-    pCtx.fillText('🎉 Resolvido!', 135, 125);
-    pCtx.font = '13px system-ui';
-    pCtx.fillStyle = '#aaa';
-    pCtx.fillText('Faça a moldura para nova foto', 135, 155);
+    pCtx.font = '700 30px Fraunces, Georgia, serif';
+    pCtx.fillText('Resolvido!', SIZE / 2, SIZE / 2 - 4);
+    pCtx.font = '500 14px "DM Sans", system-ui, sans-serif';
+    pCtx.fillStyle = '#f6d9db';
+    pCtx.fillText('Faça a moldura para nova foto', SIZE / 2, SIZE / 2 + 24);
   }
 }
 
@@ -527,7 +529,7 @@ function checkSolved() {
   if (puzzleTiles.every(t => t.r === t.origR && t.c === t.origC)) {
     gameState = 'solved';
     drawPuzzle();
-    puzzleStatus.textContent = '🎉 Parabéns! Quebra-cabeça resolvido!';
+    puzzleStatus.textContent = 'Parabéns! Quebra-cabeça resolvido!';
     return true;
   }
   return false;
@@ -617,7 +619,7 @@ function onResults(results) {
       if (d < 0.08) pinchCount++;
     }
     if (pinchCount >= 2) {
-      gestureLabel.textContent = 'Gesto: 📷 Moldura!';
+      gestureLabel.textContent = 'Gesto: Moldura!';
       frameCooldown = 60;
       captureFrame();
       return;
@@ -629,13 +631,13 @@ function onResults(results) {
     const lm = lms[0];
     const g  = detectGesture(lm);
 
-    const gestMap = { point: '☝️ Apontar', fist: '✊ Punho', open: '✋ Aberta', other: '— Outro' };
+    const gestMap = { point: 'Apontar', fist: 'Punho', open: 'Aberta', other: 'Outro' };
     gestureLabel.textContent = `Gesto: ${gestMap[g] || '—'}`;
 
     // Posição do indicador no espaço do puzzle (espelhado)
     const indexTip = lm[8];
-    const px = (1 - indexTip.x) * 270;
-    const py = indexTip.y * 270;
+    const px = (1 - indexTip.x) * SIZE;
+    const py = indexTip.y * SIZE;
 
     // Cursor visual sobre a câmera
     const camX = (1 - indexTip.x) * cameraPanel.offsetWidth;
@@ -681,7 +683,7 @@ function onResults(results) {
       selectedTile = null;
       gestureCooldown = 12;
       drawPuzzle();
-      puzzleStatus.textContent = 'Deselcionado. Aponte (☝️) para escolher uma peça.';
+      puzzleStatus.textContent = 'Deselecionado. Aponte para escolher uma peça.';
     }
   }
 }
@@ -770,6 +772,7 @@ document.getElementById('btn-reset').addEventListener('click', () => {
 });
 
 // ─── Inicia tudo ─────────────────────────────────────────────────────────────
+document.fonts.ready.then(drawPuzzle);
 start();
 </script>
 </body>
