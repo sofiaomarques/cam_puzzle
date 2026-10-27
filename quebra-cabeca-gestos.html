@@ -5,12 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quebra-Cabeça por Gestos</title>
 <style>
+  :root {
+    --pink: #fbd5d8;
+    --red: #c8141c;
+    --red-dark: #9e0e15;
+    --ink: #4a1519;
+    --muted: #9a5a5f;
+    --paper: #fffdfd;
+  }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     font-family: system-ui, -apple-system, sans-serif;
-    background: #0f0f11;
-    color: #e8e8e6;
+    background: var(--pink);
+    color: var(--ink);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -20,10 +29,10 @@
   }
 
   h1 {
-    font-size: 22px;
-    font-weight: 500;
+    font-size: 24px;
+    font-weight: 600;
     letter-spacing: -0.3px;
-    color: #e8e8e6;
+    color: var(--red);
   }
 
   #status-bar {
@@ -31,9 +40,9 @@
     align-items: center;
     gap: 10px;
     padding: 10px 18px;
-    background: #1a1a1e;
-    border-radius: 10px;
-    border: 1px solid #2a2a2e;
+    background: var(--paper);
+    border-radius: 999px;
+    border: 3px solid var(--red);
     width: 100%;
     max-width: 720px;
   }
@@ -47,43 +56,64 @@
     transition: background 0.3s;
   }
 
-  #status-dot.active { background: #639922; }
+  #status-dot.active { background: #3b8f2a; }
   #status-dot.loading { background: #ef9f27; animation: pulse 1s infinite; }
 
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-  #status-text { font-size: 14px; color: #888; }
+  #status-text { font-size: 14px; color: var(--muted); }
 
   #main-area {
     display: flex;
-    gap: 20px;
+    gap: 24px;
     width: 100%;
     max-width: 720px;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
   }
 
-  #camera-panel {
+  /* ── Moldura ondulada ───────────────────────────────────────────────────── */
+  .wavy {
     position: relative;
     flex-shrink: 0;
   }
 
+  .wavy-stroke {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 20;
+  }
+
+  .wavy-stroke path {
+    fill: none;
+    stroke: var(--red);
+    stroke-width: 5;
+    stroke-linejoin: round;
+  }
+
+  #camera-panel {
+    position: relative;
+    width: 336px;
+    height: 252px;
+    background: #2a0c0e;
+  }
+
   #video {
-    width: 320px;
-    height: 240px;
-    border-radius: 12px;
-    border: 1px solid #2a2a2e;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     transform: scaleX(-1);
     display: block;
-    background: #0a0a0c;
   }
 
   #canvas-overlay {
     position: absolute;
     top: 0; left: 0;
-    width: 320px; height: 240px;
-    border-radius: 12px;
+    width: 100%; height: 100%;
     pointer-events: none;
     transform: scaleX(-1);
   }
@@ -91,7 +121,6 @@
   #frame-flash {
     position: absolute;
     inset: 0;
-    border-radius: 12px;
     background: white;
     opacity: 0;
     pointer-events: none;
@@ -102,15 +131,22 @@
 
   #gesture-info {
     position: absolute;
-    bottom: 8px; left: 8px; right: 8px;
-    background: rgba(0,0,0,0.65);
+    bottom: 20px; left: 28px; right: 28px;
+    background: rgba(74,21,25,0.7);
     backdrop-filter: blur(4px);
-    border-radius: 6px;
-    padding: 6px 10px;
+    border-radius: 999px;
+    padding: 6px 14px;
     color: #fff;
     font-size: 12px;
     display: flex;
     justify-content: space-between;
+  }
+
+  #puzzle-card {
+    width: 314px;
+    height: 314px;
+    padding: 22px;
+    background: var(--paper);
   }
 
   #puzzle-panel {
@@ -119,21 +155,20 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
   }
 
   #puzzle-canvas {
-    border-radius: 12px;
-    border: 1px solid #2a2a2e;
+    border-radius: 6px;
     display: block;
-    background: #1a1a1e;
+    background: var(--paper);
   }
 
   #puzzle-status {
     font-size: 13px;
-    color: #888;
+    color: var(--muted);
     text-align: center;
-    max-width: 270px;
+    max-width: 290px;
     line-height: 1.5;
   }
 
@@ -144,39 +179,39 @@
 
   button {
     padding: 8px 18px;
-    border-radius: 8px;
-    border: 1px solid #3a3a3e;
-    background: transparent;
-    color: #e8e8e6;
+    border-radius: 999px;
+    border: 2px solid var(--red);
+    background: var(--paper);
+    color: var(--red);
     font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition: background 0.15s, color 0.15s;
   }
 
-  button:hover { background: #1a1a1e; border-color: #555; }
+  button:hover { background: #ffe9ea; }
 
   button.primary {
-    background: #378add;
+    background: var(--red);
     color: #fff;
-    border-color: transparent;
   }
 
-  button.primary:hover { background: #185fa5; }
+  button.primary:hover { background: var(--red-dark); }
 
   #instructions {
     width: 100%;
     max-width: 720px;
-    padding: 14px 18px;
-    background: #1a1a1e;
-    border-radius: 10px;
-    border: 1px solid #2a2a2e;
+    padding: 16px 22px;
+    background: var(--paper);
+    border-radius: 24px;
+    border: 3px solid var(--red);
   }
 
   #instructions h3 {
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     margin-bottom: 10px;
-    color: #e8e8e6;
+    color: var(--red);
   }
 
   #instructions ul {
@@ -188,7 +223,7 @@
 
   #instructions li {
     font-size: 13px;
-    color: #888;
+    color: var(--muted);
     display: flex;
     align-items: flex-start;
     gap: 8px;
@@ -197,13 +232,13 @@
 
   .gesture-badge {
     display: inline-block;
-    background: #0c447c22;
-    color: #5ba3e8;
-    border: 1px solid #185fa544;
-    border-radius: 4px;
-    padding: 1px 7px;
+    background: #c8141c14;
+    color: var(--red);
+    border: 1px solid #c8141c55;
+    border-radius: 999px;
+    padding: 1px 8px;
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
     flex-shrink: 0;
   }
@@ -211,7 +246,7 @@
   #loading-overlay {
     position: fixed;
     inset: 0;
-    background: #0f0f11;
+    background: var(--pink);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -226,26 +261,27 @@
   .spinner {
     width: 36px;
     height: 36px;
-    border: 3px solid #2a2a2e;
-    border-top-color: #378add;
+    border: 3px solid #f2aab0;
+    border-top-color: var(--red);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
 
   @keyframes spin { to { transform: rotate(360deg); } }
-  #loading-text { font-size: 14px; color: #666; }
+  #loading-text { font-size: 14px; color: var(--muted); }
 
   #cursor-dot {
     position: absolute;
     width: 14px;
     height: 14px;
-    border: 2px solid #378add;
+    border: 2px solid #fff;
+    background: var(--red);
     border-radius: 50%;
     pointer-events: none;
     transform: translate(-50%, -50%);
     display: none;
     z-index: 10;
-    box-shadow: 0 0 6px #378add66;
+    box-shadow: 0 0 6px #c8141caa;
   }
 </style>
 </head>
@@ -264,19 +300,27 @@
 </div>
 
 <div id="main-area">
-  <div id="camera-panel">
-    <video id="video" autoplay muted playsinline></video>
-    <canvas id="canvas-overlay"></canvas>
-    <div id="frame-flash"></div>
-    <div id="cursor-dot"></div>
-    <div id="gesture-info">
-      <span id="gesture-label">Gesto: —</span>
-      <span id="hand-count">Mãos: 0</span>
+  <div class="wavy" id="camera-frame">
+    <div id="camera-panel">
+      <video id="video" autoplay muted playsinline></video>
+      <canvas id="canvas-overlay"></canvas>
+      <div id="frame-flash"></div>
+      <div id="cursor-dot"></div>
+      <div id="gesture-info">
+        <span id="gesture-label">Gesto: —</span>
+        <span id="hand-count">Mãos: 0</span>
+      </div>
     </div>
+    <svg class="wavy-stroke"><path></path></svg>
   </div>
 
   <div id="puzzle-panel">
-    <canvas id="puzzle-canvas" width="270" height="270"></canvas>
+    <div class="wavy" id="puzzle-frame">
+      <div id="puzzle-card">
+        <canvas id="puzzle-canvas" width="270" height="270"></canvas>
+      </div>
+      <svg class="wavy-stroke"><path></path></svg>
+    </div>
     <div id="puzzle-status">Faça a moldura com os dois dedos para capturar!</div>
     <div id="btn-row">
       <button id="btn-shuffle">Embaralhar</button>
@@ -314,8 +358,62 @@ const handCount    = document.getElementById('hand-count');
 const puzzleStatus = document.getElementById('puzzle-status');
 const frameFlash   = document.getElementById('frame-flash');
 const cursorDot    = document.getElementById('cursor-dot');
+const cameraPanel  = document.getElementById('camera-panel');
 const loadingEl    = document.getElementById('loading-overlay');
 const loadingText  = document.getElementById('loading-text');
+
+// ─── Moldura ondulada ────────────────────────────────────────────────────────
+// Retângulo arredondado cujo contorno oscila ao longo do perímetro.
+function wavyPath(w, h, { amp = 6, wave = 56, r = 30, inset = 3 } = {}) {
+  const m = amp + inset;
+  const W = w - 2 * m, H = h - 2 * m;
+  const sx = W - 2 * r, sy = H - 2 * r, arc = Math.PI * r / 2;
+  const L = 2 * sx + 2 * sy + 4 * arc;
+  const k = Math.max(1, Math.round(L / wave));
+
+  // segmentos: { len, at(t) -> [x, y, nx, ny] }
+  const line = (x, y, dx, dy, nx, ny, len) =>
+    ({ len, at: t => [x + dx * t, y + dy * t, nx, ny] });
+  const corner = (cx, cy, a0) =>
+    ({ len: arc, at: t => {
+      const a = a0 + (t / arc) * Math.PI / 2;
+      return [cx + r * Math.cos(a), cy + r * Math.sin(a), Math.cos(a), Math.sin(a)];
+    } });
+  const segs = [
+    line(m + r, m, 1, 0, 0, -1, sx),
+    corner(m + W - r, m + r, -Math.PI / 2),
+    line(m + W, m + r, 0, 1, 1, 0, sy),
+    corner(m + W - r, m + H - r, 0),
+    line(m + W - r, m + H, -1, 0, 0, 1, sx),
+    corner(m + r, m + H - r, Math.PI / 2),
+    line(m, m + H - r, 0, -1, -1, 0, sy),
+    corner(m + r, m + r, Math.PI),
+  ];
+
+  const N = Math.round(L / 2);
+  let d = '';
+  for (let i = 0; i < N; i++) {
+    let s = (i / N) * L;
+    let seg = 0;
+    while (s > segs[seg].len) s -= segs[seg++].len;
+    const [x, y, nx, ny] = segs[seg].at(s);
+    const off = amp * Math.sin((2 * Math.PI * k * i) / N);
+    d += (i ? 'L' : 'M') + (x + nx * off).toFixed(1) + ' ' + (y + ny * off).toFixed(1);
+  }
+  return d + 'Z';
+}
+
+function applyWavyFrame(frameEl, opts) {
+  const w = frameEl.offsetWidth, h = frameEl.offsetHeight;
+  const d = wavyPath(w, h, opts);
+  const svg = frameEl.querySelector('.wavy-stroke');
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  svg.querySelector('path').setAttribute('d', d);
+  frameEl.firstElementChild.style.clipPath = `path('${d}')`;
+}
+
+applyWavyFrame(document.getElementById('camera-frame'), { amp: 6, wave: 84, r: 30 });
+applyWavyFrame(document.getElementById('puzzle-frame'), { amp: 7, wave: 90, r: 34 });
 
 // ─── Estado ──────────────────────────────────────────────────────────────────
 const GRID = 3;
@@ -361,9 +459,9 @@ function drawPuzzle() {
   pCtx.clearRect(0, 0, 270, 270);
 
   if (!capturedImage) {
-    pCtx.fillStyle = '#1a1a1e';
+    pCtx.fillStyle = '#fffdfd';
     pCtx.fillRect(0, 0, 270, 270);
-    pCtx.fillStyle = '#555';
+    pCtx.fillStyle = '#c8141c';
     pCtx.font = '14px system-ui';
     pCtx.textAlign = 'center';
     pCtx.fillText('Faça a moldura com os', 135, 115);
@@ -387,17 +485,17 @@ function drawPuzzle() {
     pCtx.restore();
 
     // Borda padrão
-    pCtx.strokeStyle = 'rgba(255,255,255,0.15)';
+    pCtx.strokeStyle = 'rgba(255,255,255,0.7)';
     pCtx.lineWidth = 1;
     pCtx.strokeRect(dx + 1, dy + 1, TILE - 2, TILE - 2);
 
     // Highlight da peça selecionada
     if (selectedTile === tile) {
-      pCtx.strokeStyle = '#378add';
+      pCtx.strokeStyle = '#c8141c';
       pCtx.lineWidth = 3;
       pCtx.strokeRect(dx + 2, dy + 2, TILE - 4, TILE - 4);
       // Brilho
-      pCtx.shadowColor = '#378add';
+      pCtx.shadowColor = '#c8141c';
       pCtx.shadowBlur = 12;
       pCtx.strokeRect(dx + 2, dy + 2, TILE - 4, TILE - 4);
       pCtx.shadowBlur = 0;
@@ -405,7 +503,7 @@ function drawPuzzle() {
   });
 
   // Grade
-  pCtx.strokeStyle = 'rgba(255,255,255,0.08)';
+  pCtx.strokeStyle = 'rgba(255,255,255,0.35)';
   pCtx.lineWidth = 1;
   for (let i = 1; i < GRID; i++) {
     pCtx.beginPath(); pCtx.moveTo(i * TILE, 0); pCtx.lineTo(i * TILE, 270); pCtx.stroke();
@@ -506,8 +604,8 @@ function onResults(results) {
   // Desenha landmarks
   lms.forEach(landmarks => {
     if (window.drawConnectors && window.HAND_CONNECTIONS) {
-      drawConnectors(ctx, landmarks, HAND_CONNECTIONS, { color: 'rgba(55,138,221,0.5)', lineWidth: 2 });
-      drawLandmarks(ctx, landmarks, { color: '#378add', lineWidth: 1, radius: 3 });
+      drawConnectors(ctx, landmarks, HAND_CONNECTIONS, { color: 'rgba(255,255,255,0.8)', lineWidth: 2 });
+      drawLandmarks(ctx, landmarks, { color: '#c8141c', lineWidth: 1, radius: 3 });
     }
   });
 
@@ -540,8 +638,8 @@ function onResults(results) {
     const py = indexTip.y * 270;
 
     // Cursor visual sobre a câmera
-    const camX = (1 - indexTip.x) * 320;
-    const camY = indexTip.y * 240;
+    const camX = (1 - indexTip.x) * cameraPanel.offsetWidth;
+    const camY = indexTip.y * cameraPanel.offsetHeight;
     cursorDot.style.display = 'block';
     cursorDot.style.left    = camX + 'px';
     cursorDot.style.top     = camY + 'px';
