@@ -4,7 +4,13 @@ Um quebra-cabeça 3×3 controlado só com as mãos, direto no navegador. Você t
 
 O reconhecimento das mãos usa o [MediaPipe Hands](https://google.github.io/mediapipe/solutions/hands) e roda inteiramente no navegador. O vídeo da câmera não é enviado para nenhum servidor.
 
-## Como rodar
+## Online
+
+O jogo está publicado em **https://campuzzle.vercel.app**. Basta abrir o link, permitir a câmera e jogar.
+
+O deploy é feito pela Vercel a cada push na `main`. Como a Vercel serve o `index.html` na raiz do site, a página precisa manter esse nome: com outro nome, o link principal responde 404.
+
+## Como rodar localmente
 
 O projeto é um único arquivo HTML, sem build nem dependências para instalar.
 
