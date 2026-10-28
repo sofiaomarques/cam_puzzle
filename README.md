@@ -8,7 +8,7 @@ O reconhecimento das mãos usa o [MediaPipe Hands](https://google.github.io/medi
 
 O projeto é um único arquivo HTML, sem build nem dependências para instalar.
 
-1. Abra `quebra-cabeca-gestos.html` em um navegador moderno (Chrome, Edge ou Safari).
+1. Abra `index.html` em um navegador moderno (Chrome, Edge ou Safari).
 2. Permita o acesso à câmera quando o navegador pedir.
 3. Aguarde o carregamento do MediaPipe e do detector de mãos.
 
@@ -20,7 +20,7 @@ O projeto é um único arquivo HTML, sem build nem dependências para instalar.
 > python3 -m http.server 8000
 > ```
 >
-> e acesse `http://localhost:8000/quebra-cabeca-gestos.html`.
+> e acesse `http://localhost:8000`.
 
 ## Como jogar
 
