@@ -346,10 +346,10 @@
 <div id="instructions">
   <h3>Como jogar</h3>
   <ul>
-    <li><span class="gesture-badge">Moldura</span> Aproxime polegar + indicador nas duas mãos (como pinçar)</li>
-    <li><span class="gesture-badge">Apontar</span> Indicador estendido — seleciona a peça sob o cursor</li>
-    <li><span class="gesture-badge">Punho</span> Com peça selecionada, aponte para uma adjacente para trocar</li>
-    <li><span class="gesture-badge">Aberta</span> Mão aberta — deseleciona a peça atual</li>
+    <li><span class="gesture-badge">📷 Moldura</span> Aproxime polegar + indicador nas duas mãos (como pinçar)</li>
+    <li><span class="gesture-badge">☝️ Apontar</span> Indicador estendido — seleciona a peça sob o cursor</li>
+    <li><span class="gesture-badge">✊ Punho</span> Com peça selecionada, aponte para uma adjacente para trocar</li>
+    <li><span class="gesture-badge">✋ Aberta</span> Mão aberta — deseleciona a peça atual</li>
   </ul>
 </div>
 
@@ -456,7 +456,7 @@ function initPuzzle(img) {
   shufflePuzzle();
   gameState = 'playing';
   drawPuzzle();
-  puzzleStatus.textContent = 'Aponte para selecionar uma peça, feche o punho para mover!';
+  puzzleStatus.textContent = 'Aponte (☝️) para selecionar uma peça, punho (✊) para mover!';
 }
 
 function shufflePuzzle() {
@@ -505,10 +505,8 @@ function drawPuzzle() {
   if (selectedTile) {
     const dx = selectedTile.c * TILE, dy = selectedTile.r * TILE;
     pCtx.save();
-    pCtx.strokeStyle = '#c8141c';
+    pCtx.strokeStyle = '#722f37';
     pCtx.lineWidth = 4;
-    pCtx.shadowColor = '#c8141c';
-    pCtx.shadowBlur = 12;
     pCtx.strokeRect(dx + 2, dy + 2, TILE - 4, TILE - 4);
     pCtx.restore();
   }
@@ -631,7 +629,7 @@ function onResults(results) {
     const lm = lms[0];
     const g  = detectGesture(lm);
 
-    const gestMap = { point: 'Apontar', fist: 'Punho', open: 'Aberta', other: 'Outro' };
+    const gestMap = { point: '☝️ Apontar', fist: '✊ Punho', open: '✋ Aberta', other: '— Outro' };
     gestureLabel.textContent = `Gesto: ${gestMap[g] || '—'}`;
 
     // Posição do indicador no espaço do puzzle (espelhado)
